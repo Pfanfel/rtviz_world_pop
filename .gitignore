@@ -15,3 +15,4 @@ node_modules
 playground-temp
 temp
 .eslintcache
+src/data/gpw_v4_basic_demographic_characteristics_rev11_mt_2010_dens_2pt5_min.nc
