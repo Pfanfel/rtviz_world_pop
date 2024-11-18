@@ -1,0 +1,7 @@
+# Installed fastapi with pip install "fastapi[standard]"
+fastapi
+xarray
+netCDF4
+numpy
+pandas
+pyquadkey2
