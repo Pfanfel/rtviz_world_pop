@@ -6,29 +6,65 @@ import pprint
 import json
 
 
-def check_ancestor(df, ancestor_quadkey_str):
+# def check_ancestor(df, ancestor_quadkey_str):
+#     # Create a QuadKey object for the ancestor to check against
+#     ancestor_quadkey = quadkey.QuadKey(ancestor_quadkey_str)
+
+#     # Define a lambda function to check if the current quadkey in the DataFrame is an ancestor
+#     df["is_ancestor"] = df["quadkey"].apply(
+#         lambda x: ancestor_quadkey.is_ancestor(quadkey.QuadKey(str(x)))
+#     )
+#     return df
+
+
+# def check_descendent(df, ancestor_quadkey_str):
+#     # Create a QuadKey object for the ancestor to check against
+#     ancestor_quadkey = quadkey.QuadKey(ancestor_quadkey_str)
+
+#     # Define a lambda function to check if the current quadkey in the DataFrame is an ancestor
+#     df["is_ancestor"] = df["quadkey"].apply(
+#         lambda x: ancestor_quadkey.is_descendent(quadkey.QuadKey(str(x)))
+#     )
+#     return df
+
+
+def filter_by_ancestor(df, ancestor_quadkey_str):
     # Create a QuadKey object for the ancestor to check against
     ancestor_quadkey = quadkey.QuadKey(ancestor_quadkey_str)
 
-    # Define a lambda function to check if the current quadkey in the DataFrame is an ancestor
-    df["is_ancestor"] = df["quadkey"].apply(
-        lambda x: ancestor_quadkey.is_ancestor(quadkey.QuadKey(str(x)))
-    )
-    return df
+    # Filter the DataFrame by keeping only rows where the quadkey is an ancestor
+    filtered_df = df[
+        df["quadkey"].apply(
+            lambda x: ancestor_quadkey.is_ancestor(quadkey.QuadKey(str(x)))
+        )
+    ]
+
+    return filtered_df
 
 
-def check_descendent(df, ancestor_quadkey_str):
+def filter_by_descendent(df, ancestor_quadkey_str):
     # Create a QuadKey object for the ancestor to check against
     ancestor_quadkey = quadkey.QuadKey(ancestor_quadkey_str)
 
-    # Define a lambda function to check if the current quadkey in the DataFrame is an ancestor
-    df["is_ancestor"] = df["quadkey"].apply(
-        lambda x: ancestor_quadkey.is_descendent(quadkey.QuadKey(str(x)))
-    )
-    return df
+    # Filter the DataFrame by keeping only rows where the quadkey is a descendant
+    filtered_df = df[
+        df["quadkey"].apply(
+            lambda x: ancestor_quadkey.is_descendent(quadkey.QuadKey(str(x)))
+        )
+    ]
+
+    return filtered_df
 
 
-def build_quadtree():
+def df_to_json(df):
+    json_result = df.to_json(orient="records")
+    # formatted_json = json.dumps(
+    #     json_result, indent=2
+    # )  # is not necessary, but makes the output more readable
+    return json_result
+
+
+def load_male_dataset():
 
     # dataset = xr.open_dataset(
     #     "../../data/gpw_v4_basic_demographic_characteristics_rev11_mt_2010_dens_2pt5_min.nc"
@@ -57,13 +93,16 @@ def build_quadtree():
     # data_slice_male_long_lat = extract_data_points_vectorized_long_lat(data_slice_male)
     data_slice_male_quadkey = extract_data_points_vectorized_quadkey(data_slice_male)
 
-    updated_df = check_descendent(data_slice_male_quadkey, "1")
-    print("---After query---")
-    print(updated_df.head())
-    print(updated_df.tail())
+    # print(data_slice_male_quadkey.head())
+    # print(data_slice_male_quadkey.info())
+
+    # updated_df = filter_by_descendent(data_slice_male_quadkey, "12020320231")
+    # print("---After query---")
+    # print(updated_df.head())
+    # print(updated_df.tail())
     # print(reshaped_df.columns)
     # print(reshaped_df.shape)
-    print(updated_df.info())
+    # print(updated_df.info())
 
     # data_slice_male_np = data_slice_male.as_numpy()
     ##print(np.info(data_slice_male_np))
@@ -83,7 +122,7 @@ def build_quadtree():
     # zoom_level_2_json = json.dumps(zoom_level_2, indent=4)
     # zoom_level_13_json = json.dumps(zoom_level_13, indent=4)
 
-    return zoom_level_2, zoom_level_13
+    return data_slice_male_quadkey
 
 
 def extract_data_points_vectorized_long_lat(ds):
@@ -92,12 +131,12 @@ def extract_data_points_vectorized_long_lat(ds):
         ds.to_dataframe().reset_index()
     )  # .reset_index() is used to convert the index to columns
 
-    print("---Before reshaping---")
-    print(df.head())
-    print(df.tail())
+    # print("---Before reshaping---")
+    # print(df.head())
+    # print(df.tail())
     # print(df.columns)
     # print(df.shape)
-    print(df.info())
+    # print(df.info())
 
     # Assuming 'df' is your original DataFrame with the columns shown
     df.columns = [
@@ -123,12 +162,12 @@ def extract_data_points_vectorized_long_lat(ds):
         for col in reshaped_df.columns[2:]
     ]
 
-    print("---After reshaping---")
-    print(reshaped_df.head())
-    print(reshaped_df.tail())
+    # print("---After reshaping---")
+    # print(reshaped_df.head())
+    # print(reshaped_df.tail())
     # print(reshaped_df.columns)
     # print(reshaped_df.shape)
-    print(reshaped_df.info())
+    # print(reshaped_df.info())
 
     return reshaped_df
 
@@ -139,12 +178,12 @@ def extract_data_points_vectorized_quadkey(ds):
         ds.to_dataframe().reset_index()
     )  # .reset_index() is used to convert the index to columns
 
-    print("---Before reshaping---")
-    print(df.head())
-    print(df.tail())
+    # print("---Before reshaping---")
+    # print(df.head())
+    # print(df.tail())
     # print(df.columns)
     # print(df.shape)
-    print(df.info())
+    # print(df.info())
 
     df.columns = [
         "raster",
@@ -180,16 +219,16 @@ def extract_data_points_vectorized_quadkey(ds):
         for col in reshaped_df.columns[1:]
     ]
 
-    print("---After reshaping---")
-    print(reshaped_df.head())
-    print(reshaped_df.tail())
+    # print("---After reshaping---")
+    # print(reshaped_df.head())
+    # print(reshaped_df.tail())
     # print(reshaped_df.columns)
     # print(reshaped_df.shape)
-    print(reshaped_df.info())
+    # print(reshaped_df.info())
 
     # Count the number of unique quadkey values in the DataFrame
-    unique_quadkey_count = df["quadkey"].nunique()
-    print(unique_quadkey_count)
+    # unique_quadkey_count = df["quadkey"].nunique()
+    # print(unique_quadkey_count)
 
     return reshaped_df
 
@@ -239,6 +278,6 @@ def extract_data_points(data_slice_male):
 
 
 if __name__ == "__main__":
-    zoom_level_2, zoom_level_13 = build_quadtree()
+    data_slice_male_quadkey = load_male_dataset()
     # pprint.pprint(zoom_level_2)
     # pprint.pprint(zoom_level_13)
