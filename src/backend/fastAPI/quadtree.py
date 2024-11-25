@@ -5,7 +5,6 @@ from pyquadkey2 import quadkey
 import pprint
 import json
 
-
 # def check_ancestor(df, ancestor_quadkey_str):
 #     # Create a QuadKey object for the ancestor to check against
 #     ancestor_quadkey = quadkey.QuadKey(ancestor_quadkey_str)
@@ -113,14 +112,29 @@ def load_male_dataset():
     # [['raster', 'Basic Demographic Characteristics, v4.10 (2010): Male, Density, 2.5 arc-minutes']]
 
     file_path_male = "../../data/gpw_v4_basic_demographic_characteristics_rev11_mt_2010_dens_2pt5_min.nc"
-    lat_slice = slice(50, 45)
-    lon_slice = slice(6, 15)
+    file_path_male_raster_lookup = "../../data/gpw_v4_basic_demographic_characteristics_rev11_mt_2010_dens_2pt5_min_lookup.csv"
+    df_file_path_male_raster_lookup = read_csv_file(file_path_male_raster_lookup)
+    raster_column_values = get_column_values(
+        df_file_path_male_raster_lookup, "raster_name"
+    )
+
+    raster_column_values_lowercased = process_raster_names(raster_column_values)
+    print(raster_column_values_lowercased)
+
+    lat_slice = slice(85, -85)  # Dosen't work with value over 85 or under -85
+    lon_slice = slice(6, 7)
     data_slice_male = load_dataset(file_path_male, lat_slice, lon_slice)
 
-    # data_slice_male_long_lat = extract_data_points_vectorized_long_lat(data_slice_male)
-    data_slice_male_quadkey = extract_data_points_vectorized_quadkey(data_slice_male)
+    data_slice_male_long_lat = extract_data_points_vectorized_long_lat(
+        data_slice_male, raster_column_values_lowercased
+    )
+    # data_slice_male_quadkey = extract_data_points_vectorized_quadkey(data_slice_male)
+
+    print(data_slice_male_long_lat.head())
+    print(data_slice_male_long_lat.tail())
 
     # print(data_slice_male_quadkey.head())
+    # print(data_slice_male_quadkey.tail())
     # print(data_slice_male_quadkey.info())
 
     # updated_df = filter_by_descendent(data_slice_male_quadkey, "12020320231")
@@ -177,7 +191,33 @@ def extract_data_points_vectorized_quadkey_2(ds):
 
     return df
 
-def extract_data_points_vectorized_long_lat(ds):
+def process_raster_names(raster_names):
+    processed_names = []
+    for name in raster_names:
+        if ":" in name:
+            extracted_name = name.split(":", 1)[1].strip().lower().replace(" ", "_")
+            processed_names.append(extracted_name)
+    return processed_names
+
+
+def read_csv_file(file_path):
+    df = pd.read_csv(file_path)
+    print(df.head())
+    print(df.tail())
+    print(df.columns)
+    print(df.shape)
+    print(df.info())
+    return df
+
+
+def get_column_values(df, column_name):
+    if column_name in df.columns:
+        return df[column_name].tolist()
+    else:
+        raise ValueError(f"Column '{column_name}' does not exist in the DataFrame")
+
+
+def extract_data_points_vectorized_long_lat(ds, raster_column_values_lowercased):
     # Convert the dataset to a pandas DataFrame
     df = (
         ds.to_dataframe().reset_index()
@@ -210,7 +250,7 @@ def extract_data_points_vectorized_long_lat(ds):
 
     # Rename the raster columns to have a prefix
     reshaped_df.columns = ["latitude", "longitude"] + [
-        f"raster_{int(col)}" if not pd.isnull(col) else col
+        raster_column_values_lowercased[int(col) - 1] if not pd.isnull(col) else col
         for col in reshaped_df.columns[2:]
     ]
 
