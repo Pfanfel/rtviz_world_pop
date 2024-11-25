@@ -63,6 +63,33 @@ def df_to_json(df):
     # )  # is not necessary, but makes the output more readable
     return json_result
 
+def load_male_dataset_2():
+    file_path_male = "../data/gpw_v4_basic_demographic_characteristics_rev11_mt_2010_dens_2pt5_min.nc"
+
+    # Initialize an empty DataFrame to store results
+    combined_df = pd.DataFrame()
+
+    # Process the dataset in 10-degree latitude chunks
+    for lat_start in range(85, -90, -10):  # Iterate from 90 to -90 in steps of -10
+    # for lat_start in range(85, 75, -10):  # Iterate from 90 to -90 in steps of -10
+        lat_end = lat_start - 10
+        lat_slice = slice(lat_start, lat_end)
+
+        for lon_start in range(-180, 180, 10):  # Iterate from 90 to -90 in steps of -10
+        # for lon_start in range(-180, -170, 10):  # Iterate from 90 to -90 in steps of -10
+            lon_end = lon_start + 10
+            lon_slice = slice(lon_start, lon_end)
+            print("lat: " + str(lat_start) + " long: " + str(lon_start))
+            print("lat: " + str(lat_end) + " long: " + str(lon_end))
+
+            # Load and process the chunk
+            data_slice_male = load_dataset(file_path_male, lat_slice, lon_slice)
+            data_slice_male_quadkey = extract_data_points_vectorized_quadkey_2(data_slice_male)
+
+            # Union the results into the combined DataFrame
+            combined_df = pd.concat([combined_df, data_slice_male_quadkey], ignore_index=True)
+
+    return combined_df
 
 def load_male_dataset():
 
@@ -124,6 +151,31 @@ def load_male_dataset():
 
     return data_slice_male_quadkey
 
+def extract_data_points_vectorized_quadkey_2(ds):
+    data_points = []
+    longs = ds.longitude.values
+    lats = ds.latitude.values
+
+    zoom_level = 14  # Adjust as needed for desired precision
+
+    for x in range(len(lats)):  # Iterate over latitude indices
+        for y in range(len(longs)):  # Iterate over longitude indices
+            # Convert latitude and longitude to quadkey
+            coord = (lats[x], longs[y])
+            tile = quadkey.from_geo(coord, zoom_level)
+            quadkey_str = tile.key
+            
+            # Extract raster values
+            raster_values = ds.values[:, x, y]
+            
+            # Append a row with quadkey and raster values
+            data_points.append([quadkey_str] + list(raster_values))
+
+    # Create a DataFrame from the data points
+    columns = ['quadkey'] + [f'raster_{i + 1}' for i in range(ds.shape[0])]
+    df = pd.DataFrame(data_points, columns=columns)
+
+    return df
 
 def extract_data_points_vectorized_long_lat(ds):
     # Convert the dataset to a pandas DataFrame
@@ -278,6 +330,6 @@ def extract_data_points(data_slice_male):
 
 
 if __name__ == "__main__":
-    data_slice_male_quadkey = load_male_dataset()
+    data_slice_male_quadkey = load_male_dataset_2()
     # pprint.pprint(zoom_level_2)
     # pprint.pprint(zoom_level_13)
