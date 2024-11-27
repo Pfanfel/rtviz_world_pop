@@ -5,3 +5,8 @@ netCDF4
 numpy
 pandas
 pyquadkey2
+
+#%pip install duckdb leafmap
+#%pip install "xarray[io]"
+#%pip install jupysql
+#%pip install duckdb-engine --quiet # To use DuckDB with JupyterSQL for %%sql commands
