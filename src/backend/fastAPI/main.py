@@ -58,6 +58,12 @@ async def get_male_tile(z: int, y: int, x: int):
     result = loadTileMale(z, y, x)
     return result
 
+@app.get("/api/schema")
+async def showTables():
+    # Call the function and return the result
+    tables = con.execute("SHOW TABLES").fetchdf()
+    return tables
+
 # @app.get("/api/male/whole")
 # async def main(request: Request):
 #     data_slice_male_quadkey = request.state.data_slice_male_quadkey

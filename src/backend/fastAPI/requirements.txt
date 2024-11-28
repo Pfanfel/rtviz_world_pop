@@ -5,6 +5,7 @@ netCDF4
 numpy
 pandas
 pyquadkey2
+uvicorn
 
 #%pip install duckdb leafmap
 #%pip install "xarray[io]"
