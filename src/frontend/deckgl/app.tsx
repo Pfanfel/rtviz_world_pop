@@ -7,6 +7,10 @@ import {TileLayer, QuadkeyLayer} from '@deck.gl/geo-layers';
 import type {TileLayerPickingInfo} from '@deck.gl/geo-layers';
 
 
+
+
+
+
 // Set your Mapbox token here or via environment variable
 const MAPBOX_TOKEN: string | undefined = process.env.MapboxAccessToken; // eslint-disable-line
 
@@ -17,6 +21,7 @@ const INITIAL_VIEW_STATE = {
   bearing: 0,
   pitch: 30
 };
+
 
 const MAP_STYLE = 'mapbox://styles/mapbox/light-v9';
 
@@ -83,33 +88,33 @@ const onTilesLoad = () => {
 
 const tileLayerQkey = new TileLayer<DataType>({
     // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
-    data: ['http://127.0.0.1:8000/api/male/{z}/{x}/{y}'],
+    data: ['http://127.0.0.1:8000/api/male/{z}/{y}/{x}'],
 
     // Since these OSM tiles support HTTP/2, we can make many concurrent requests
     // and we aren't limited by the browser to a certain number per domain.
-    maxRequests: 20,
+    maxRequests: 5,
 
     pickable: true,
     onViewportLoad: onTilesLoad,
     // https://wiki.openstreetmap.org/wiki/Zoom_levels
     minZoom: 0,
-    maxZoom: 14,
+    maxZoom: 8,
     tileSize: 256,
     zoomOffset: devicePixelRatio === 1 ? -1 : 0,
     renderSubLayers: props => {
       const [[west, south], [east, north]] = props.tile.boundingBox;
       const {data, ...otherProps} = props;
-      console.log(props);
+      console.log(props.tile.zoom);
 
       return [
         new QuadkeyLayer<DataType>({
           data: data,
-
+          id: `QuadkeyLayer-${props.tile.id}`, // Unique id for each layer
           extruded: true,
           getQuadkey: (d: DataType) => d.quadkey,
           getFillColor: (d: DataType) => [d.raster_1 * 128, (1 - d.raster_1) * 255, (1 - d.raster_1) * 255, 180],
           getElevation: (d: DataType) => d.raster_1,
-          elevationScale: 1,
+          elevationScale: 1*props.tile.zoom,
           pickable: true
         })
       ];

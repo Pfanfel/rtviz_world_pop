@@ -5,6 +5,8 @@ import duckdb
 from contextlib import asynccontextmanager
 import json
 from fastapi.middleware.cors import CORSMiddleware
+import time
+
 
 
 @asynccontextmanager
@@ -13,9 +15,7 @@ async def lifespan(app: FastAPI):
     Initialise the Client and add it to request.state
     """
     # Build the tree
-    con = duckdb.connect(
-        "../../data/qudkeyDB.duckdb"
-    )  # Note: duckdb.sql connects to the default in-memory database connection
+    con = duckdb.connect("src/data/qudkeydb.duckdb", read_only=True)  # Note: duckdb.sql connects to the default in-memory database connection
     con.install_extension("spatial")
     con.load_extension("spatial")
     yield {"con": con}
@@ -28,6 +28,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+@app.middleware("http")
+async def add_process_time_logging(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    print(f'Completed request in {process_time} seconds')
+    return response
 
 origins = ["*"]  # Allow all origins
 
@@ -57,6 +65,7 @@ def num2deg(xtile, ytile, zoom):
 
 
 def getData(quadkeys, con):
+    operation1_start = time.time()
     if not quadkeys:
         return []
     values_clause = ", ".join(f"('{quadkey}')" for quadkey in quadkeys)
@@ -71,15 +80,24 @@ def getData(quadkeys, con):
     ON t.quadkey = q.quadkey
     """
     # Execute the query
+    operation1_end = time.time()
+    print(f"Creating Query took {operation1_end - operation1_start} seconds")
+    operation2_start = time.time()
     result = con.execute(query).df()
+    operation2_end = time.time()
+    print(f"DB Query took {operation2_end - operation2_start} seconds")
+    operation3_start = time.time()
     result = result.fillna(0)
-    return result.to_dict(orient="records")
+    resultsDic = result.to_dict(orient="records")
+    operation3_end = time.time()
+    print(f"Res reshape took {operation3_end - operation3_start} seconds")
+    return resultsDic
 
 
 def loadTileMale(z, y, x, con):
     qkey = quadkey.from_tile((x, y), z)  # get quadtree for this tile
     listofQKeys = qkey.children(
-        z + 1
+        z + 4
     )  # get all children 3 levels deeper -> 64 data points for this til
     return getData(listofQKeys, con)
 
@@ -87,7 +105,10 @@ def loadTileMale(z, y, x, con):
 @app.get("/api/male/{z}/{y}/{x}")
 async def get_male_tile(z: int, y: int, x: int, request: Request):
     # Call the function and return the result
+    operation1_start = time.time()
     result = loadTileMale(z, y, x, request.state.con)
+    operation1_end = time.time()
+    print(f"Total time taken for tile {operation1_end - operation1_start} seconds")
     return result
 
 
@@ -109,3 +130,48 @@ async def get_descendants(quadkey: int, request: Request):
     data_slice_male_quadkey = request.state.data_slice_male_quadkey
     filtered_data = filter_by_descendent(data_slice_male_quadkey, str(quadkey))
     return df_to_json(filtered_data)
+
+@app.get("/api/schema")
+async def get_schema(request: Request):
+    schema = request.state.con.sql("""PRAGMA show_tables;""").df()
+    return schema
+
+@app.get("/api/create_table")
+async def create_table(request: Request):
+    create_table_query = """
+    CREATE TABLE if not exists data_slice_male_long_lat (
+        quadkey VARCHAR,
+        raster_1 FLOAT,
+        raster_2 FLOAT,
+        raster_3 FLOAT,
+        raster_4 FLOAT,
+        raster_5 FLOAT,
+        raster_6 FLOAT,
+        raster_7 FLOAT,
+        raster_8 FLOAT,
+        raster_9 FLOAT,
+        raster_10 FLOAT,
+        raster_11 FLOAT,
+        raster_12 FLOAT,
+        raster_13 FLOAT,
+        raster_14 FLOAT,
+        raster_15 FLOAT,
+        raster_16 FLOAT,
+        raster_17 FLOAT,
+        raster_18 FLOAT,
+        raster_19 FLOAT,
+        raster_20 FLOAT,
+        raster_21 FLOAT,
+        raster_22 FLOAT,
+        raster_23 FLOAT,
+        raster_24 FLOAT,
+        raster_25 FLOAT,
+        raster_26 FLOAT,
+        raster_27 FLOAT,
+        raster_28 FLOAT,
+        raster_29 FLOAT,
+        raster_30 FLOAT
+    );
+"""
+    # Execute the query to create the table
+    request.state.con.execute(create_table_query)
