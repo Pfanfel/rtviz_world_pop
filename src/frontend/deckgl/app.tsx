@@ -5,6 +5,7 @@ import { MapboxOverlay as DeckOverlay, MapboxOverlayProps as DeckOverlayProps } 
 import 'mapbox-gl/dist/mapbox-gl.css';
 import {TileLayer, QuadkeyLayer} from '@deck.gl/geo-layers';
 import type {TileLayerPickingInfo} from '@deck.gl/geo-layers';
+import {Deck, PickingInfo} from '@deck.gl/core';
 
 
 
@@ -12,7 +13,7 @@ import type {TileLayerPickingInfo} from '@deck.gl/geo-layers';
 
 
 // Set your Mapbox token here or via environment variable
-const MAPBOX_TOKEN: string | undefined = process.env.MapboxAccessToken; // eslint-disable-line
+const MAPBOX_TOKEN: string | undefined = "pk.eyJ1Ijoia3V0cSIsImEiOiJjbTQ3ODk3NzQwMzBuMm9zOXh2Z3kzZ2o1In0.UKsaCjiqJmRJkhxDZpC-CQ"; // eslint-disable-line
 
 const INITIAL_VIEW_STATE = {
   latitude: 51.47,
@@ -46,35 +47,35 @@ interface SelectedFeature {
 type DataType = {
     quadkey: string;
     raster_1: number;
-    raster_2: number;
-    raster_3: number;
-    raster_4: number;
-    raster_5: number;
-    raster_6: number;
-    raster_7: number;
-    raster_8: number;
-    raster_9: number;
-    raster_10: number;
-    raster_11: number;
-    raster_12: number;
-    raster_13: number;
-    raster_14: number;
-    raster_15: number;
-    raster_16: number;
-    raster_17: number;
-    raster_18: number;
-    raster_19: number;
-    raster_20: number;
-    raster_21: number;
-    raster_22: number;
-    raster_23: number;
-    raster_24: number;
-    raster_25: number;
-    raster_26: number;
-    raster_27: number;
-    raster_28: number;
-    raster_29: number;
-    raster_30: number;
+    // raster_2: number;
+    // raster_3: number;
+    // raster_4: number;
+    // raster_5: number;
+    // raster_6: number;
+    // raster_7: number;
+    // raster_8: number;
+    // raster_9: number;
+    // raster_10: number;
+    // raster_11: number;
+    // raster_12: number;
+    // raster_13: number;
+    // raster_14: number;
+    // raster_15: number;
+    // raster_16: number;
+    // raster_17: number;
+    // raster_18: number;
+    // raster_19: number;
+    // raster_20: number;
+    // raster_21: number;
+    // raster_22: number;
+    // raster_23: number;
+    // raster_24: number;
+    // raster_25: number;
+    // raster_26: number;
+    // raster_27: number;
+    // raster_28: number;
+    // raster_29: number;
+    // raster_30: number;
   };
 
 /* global window */
@@ -85,6 +86,11 @@ const onTilesLoad = () => {
   console.log('Tiles loaded');
 }
 
+const normalizer = (value: number) => {
+  const min = 0
+  const max = 50
+  return (value - min) / (max - min);
+}
 
 const tileLayerQkey = new TileLayer<DataType>({
     // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
@@ -92,19 +98,20 @@ const tileLayerQkey = new TileLayer<DataType>({
 
     // Since these OSM tiles support HTTP/2, we can make many concurrent requests
     // and we aren't limited by the browser to a certain number per domain.
-    maxRequests: 5,
+    maxRequests: 20,
 
     pickable: true,
     onViewportLoad: onTilesLoad,
     // https://wiki.openstreetmap.org/wiki/Zoom_levels
     minZoom: 0,
-    maxZoom: 8,
+    maxZoom: 7,
     tileSize: 256,
     zoomOffset: devicePixelRatio === 1 ? -1 : 0,
     renderSubLayers: props => {
       const [[west, south], [east, north]] = props.tile.boundingBox;
       const {data, ...otherProps} = props;
       console.log(props.tile.zoom);
+      
 
       return [
         new QuadkeyLayer<DataType>({
@@ -112,10 +119,27 @@ const tileLayerQkey = new TileLayer<DataType>({
           id: `QuadkeyLayer-${props.tile.id}`, // Unique id for each layer
           extruded: true,
           getQuadkey: (d: DataType) => d.quadkey,
-          getFillColor: (d: DataType) => [d.raster_1 * 128, (1 - d.raster_1) * 255, (1 - d.raster_1) * 255, 180],
+          getFillColor: (d) => {
+            const normalizedValue = normalizer(d.raster_1);
+              const colArr = 
+              [[247,244,249, 200],
+              [231,225,239, 200],
+              [212,185,218, 200],
+              [201,148,199, 200],
+              [223,101,176, 200],
+              [231,41,138, 200],
+              [206,18,86, 200],
+              [152,0,67, 200],
+              [103,0,31, 200]]
+              const bin = Math.round(Math.min(normalizedValue * 8, 8));
+              const color = new Uint8ClampedArray(colArr[bin]);
+              console.log(bin);
+              return color;
+          },
           getElevation: (d: DataType) => d.raster_1,
-          elevationScale: 1*props.tile.zoom,
-          pickable: true
+          elevationScale: 1000/props.tile.zoom*2,
+          pickable: true,
+
         })
       ];
     }

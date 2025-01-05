@@ -34,7 +34,7 @@ async def add_process_time_logging(request: Request, call_next):
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
-    print(f'Completed request in {process_time} seconds')
+    print(f'Completed request {request.url} in {process_time} seconds')
     return response
 
 origins = ["*"]  # Allow all origins
@@ -64,8 +64,7 @@ def num2deg(xtile, ytile, zoom):
     return lat_deg, lon_deg
 
 
-def getData(quadkeys, con):
-    operation1_start = time.time()
+async def getData(quadkeys, con, z, y, x,):
     if not quadkeys:
         return []
     values_clause = ", ".join(f"('{quadkey}')" for quadkey in quadkeys)
@@ -74,41 +73,39 @@ def getData(quadkeys, con):
     WITH quadkey_temp(quadkey) AS (
         VALUES {values_clause}
     )
-    SELECT t.*
+    SELECT t.quadkey, t.raster_1
     FROM data_slice_male_long_lat t
     JOIN quadkey_temp q
     ON t.quadkey = q.quadkey
     """
     # Execute the query
-    operation1_end = time.time()
-    print(f"Creating Query took {operation1_end - operation1_start} seconds")
     operation2_start = time.time()
     result = con.execute(query).df()
     operation2_end = time.time()
-    print(f"DB Query took {operation2_end - operation2_start} seconds")
-    operation3_start = time.time()
+    print(f"DB Query {z, y, x,} took {operation2_end - operation2_start} seconds")
     result = result.fillna(0)
     resultsDic = result.to_dict(orient="records")
-    operation3_end = time.time()
-    print(f"Res reshape took {operation3_end - operation3_start} seconds")
     return resultsDic
 
 
-def loadTileMale(z, y, x, con):
+
+
+async def loadTileMale(z, y, x, con):
     qkey = quadkey.from_tile((x, y), z)  # get quadtree for this tile
     listofQKeys = qkey.children(
-        z + 4
+        z + 5
     )  # get all children 3 levels deeper -> 64 data points for this til
-    return getData(listofQKeys, con)
+    return await getData(listofQKeys, con, z, y, x,)
 
 
 @app.get("/api/male/{z}/{y}/{x}")
 async def get_male_tile(z: int, y: int, x: int, request: Request):
+    print("Requesting tile", z, y, x)
     # Call the function and return the result
     operation1_start = time.time()
-    result = loadTileMale(z, y, x, request.state.con)
+    result = await loadTileMale(z, y, x, request.state.con)
     operation1_end = time.time()
-    print(f"Total time taken for tile {operation1_end - operation1_start} seconds")
+    print(f"Total time taken for {z, y, x} tile {operation1_end - operation1_start} seconds")
     return result
 
 
@@ -135,6 +132,14 @@ async def get_descendants(quadkey: int, request: Request):
 async def get_schema(request: Request):
     schema = request.state.con.sql("""PRAGMA show_tables;""").df()
     return schema
+
+@app.get("/api/threads")
+async def get_schema(request: Request):
+    schema = request.state.con.sql("""SELECT current_setting('threads') AS threads;""")
+    print(schema)
+    return 0
+
+    
 
 @app.get("/api/create_table")
 async def create_table(request: Request):
