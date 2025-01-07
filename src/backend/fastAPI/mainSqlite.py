@@ -73,7 +73,7 @@ async def loadTileMale(z, y, x, con, raster_index, detailLevel):
     )  # Get all children 3 levels deeper -> 64 data points for this tile
     return await getData(listofQKeys, con, z, y, x, raster_index)
 
-@app.get("/api/male/{z}/{y}/{x}/{raster_index}/{detailLevel}")
+@app.get("/api/male/{z}/{y}/{x}/{raster_index}/{detailLevel}/{heightLevel}/{maxValue}")
 async def get_male_tile(z: int, y: int, x: int, raster_index: int, detailLevel: int, request: Request):
     print("Requesting tile", z, y, x, "with raster", raster_index, "and detail level", detailLevel)
     # Call the function and return the result

@@ -46,14 +46,8 @@ function Root() {
     return (value - min) / (maxValue - min);
   };
 
-  const refreshMap = () => {
-    setSelected(null); // Reset selected popup
-    setSelectedRaster((prev) => prev); // Trigger re-render
-    setDetailLevel((prev) => prev); // Ensure detail level changes are applied
-  };
-
   const tileLayerQkey = new TileLayer<DataType>({
-    data: [`http://127.0.0.1:8000/api/male/{z}/{y}/{x}/${selectedRaster}/${detailLevel}`],
+    data: [`http://127.0.0.1:8000/api/male/{z}/{y}/{x}/${selectedRaster}/${detailLevel}/${heightLevel}/${maxValue}`], // heightLevel, maxValue are only used for update it is stupid i know
     maxRequests: 20,
     pickable: true,
     minZoom: 0,
@@ -67,6 +61,10 @@ function Root() {
           data: props.data,
           id: `QuadkeyLayer-${props.tile.id}`,
           extruded: true,
+          updateTriggers: { // did not work sadly
+            getFillColor: maxValue, // Trigger rerender when maxValue changes
+            elevationScale: heightLevel, // Trigger rerender when heightLevel changes
+          },
           getQuadkey: (d: DataType) => d.quadkey,
           getFillColor: (d) => {
             const normalizedValue = normalizer(d.value);
@@ -87,7 +85,7 @@ function Root() {
           },
           getElevation: (d: DataType) => d.value,
           elevationScale: 1000 / (props.tile.zoom * heightLevel),
-          pickable: true
+          pickable: true,
         })
       ];
     }
@@ -162,13 +160,6 @@ function Root() {
           onChange={handleHeightLevelChange}
           style={{ padding: "5px", fontSize: "16px", marginRight: "20px" }}
         />
-
-        <button
-          onClick={refreshMap}
-          style={{ padding: "5px 10px", fontSize: "16px", cursor: "pointer" }}
-        >
-          Refresh Map
-        </button>
       </header>
 
       <Map
