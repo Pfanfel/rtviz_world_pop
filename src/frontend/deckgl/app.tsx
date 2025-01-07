@@ -3,16 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { Map, NavigationControl, Popup, useControl } from 'react-map-gl';
 import { MapboxOverlay as DeckOverlay, MapboxOverlayProps as DeckOverlayProps } from '@deck.gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import {TileLayer, QuadkeyLayer} from '@deck.gl/geo-layers';
-import type {TileLayerPickingInfo} from '@deck.gl/geo-layers';
-import {Deck, PickingInfo} from '@deck.gl/core';
+import { TileLayer, QuadkeyLayer } from '@deck.gl/geo-layers';
+import { RasterMapping } from './MaleRasterMappings';
 
-
-
-
-
-
-// Set your Mapbox token here or via environment variable
+/* global window */
 const MAPBOX_TOKEN: string | undefined = "pk.eyJ1Ijoia3V0cSIsImEiOiJjbTQ3ODk3NzQwMzBuMm9zOXh2Z3kzZ2o1In0.UKsaCjiqJmRJkhxDZpC-CQ"; // eslint-disable-line
 
 const INITIAL_VIEW_STATE = {
@@ -22,7 +16,6 @@ const INITIAL_VIEW_STATE = {
   bearing: 0,
   pitch: 30
 };
-
 
 const MAP_STYLE = 'mapbox://styles/mapbox/light-v9';
 
@@ -34,143 +27,168 @@ function DeckGLOverlay(props: DeckGLOverlayProps) {
   return null;
 }
 
-interface SelectedFeature {
-  properties: {
-    name: string;
-    abbrev: string;
-  };
-  geometry: {
-    coordinates: [number, number];
-  };
-}
-
 type DataType = {
-    quadkey: string;
-    raster_1: number;
-    // raster_2: number;
-    // raster_3: number;
-    // raster_4: number;
-    // raster_5: number;
-    // raster_6: number;
-    // raster_7: number;
-    // raster_8: number;
-    // raster_9: number;
-    // raster_10: number;
-    // raster_11: number;
-    // raster_12: number;
-    // raster_13: number;
-    // raster_14: number;
-    // raster_15: number;
-    // raster_16: number;
-    // raster_17: number;
-    // raster_18: number;
-    // raster_19: number;
-    // raster_20: number;
-    // raster_21: number;
-    // raster_22: number;
-    // raster_23: number;
-    // raster_24: number;
-    // raster_25: number;
-    // raster_26: number;
-    // raster_27: number;
-    // raster_28: number;
-    // raster_29: number;
-    // raster_30: number;
-  };
+  quadkey: string;
+  value: number;
+};
 
-/* global window */
 const devicePixelRatio = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
 
+function Root() {
+  const [selected, setSelected] = useState<DataType | null>(null);
+  const [selectedRaster, setSelectedRaster] = useState<number>(1); // Default raster is 1
+  const [maxValue, setMaxValue] = useState<number>(50); // Default max value for normalization
+  const [detailLevel, setDetailLevel] = useState<number>(5); // Default detail level is 1
+  const [heightLevel, setHeightLevel] = useState<number>(1); // Default detail level is 2
 
-const onTilesLoad = () => {
-  console.log('Tiles loaded');
-}
+  const normalizer = (value: number) => {
+    const min = 0;
+    return (value - min) / (maxValue - min);
+  };
 
-const normalizer = (value: number) => {
-  const min = 0
-  const max = 50
-  return (value - min) / (max - min);
-}
+  const refreshMap = () => {
+    setSelected(null); // Reset selected popup
+    setSelectedRaster((prev) => prev); // Trigger re-render
+    setDetailLevel((prev) => prev); // Ensure detail level changes are applied
+  };
 
-const tileLayerQkey = new TileLayer<DataType>({
-    // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
-    data: ['http://127.0.0.1:8000/api/male/{z}/{y}/{x}'],
-
-    // Since these OSM tiles support HTTP/2, we can make many concurrent requests
-    // and we aren't limited by the browser to a certain number per domain.
+  const tileLayerQkey = new TileLayer<DataType>({
+    data: [`http://127.0.0.1:8000/api/male/{z}/{y}/{x}/${selectedRaster}/${detailLevel}`],
     maxRequests: 20,
-
     pickable: true,
-    onViewportLoad: onTilesLoad,
-    // https://wiki.openstreetmap.org/wiki/Zoom_levels
     minZoom: 0,
     maxZoom: 7,
     tileSize: 256,
     zoomOffset: devicePixelRatio === 1 ? -1 : 0,
-    renderSubLayers: props => {
-      const [[west, south], [east, north]] = props.tile.boundingBox;
-      const {data, ...otherProps} = props;
-      console.log(props.tile.zoom);
-      
-
+    renderSubLayers: (props) => {
+      console.log(props.tile.zoom , detailLevel)
       return [
         new QuadkeyLayer<DataType>({
-          data: data,
-          id: `QuadkeyLayer-${props.tile.id}`, // Unique id for each layer
+          data: props.data,
+          id: `QuadkeyLayer-${props.tile.id}`,
           extruded: true,
           getQuadkey: (d: DataType) => d.quadkey,
           getFillColor: (d) => {
-            const normalizedValue = normalizer(d.raster_1);
-              const colArr = 
-              [[247,244,249, 200],
-              [231,225,239, 200],
-              [212,185,218, 200],
-              [201,148,199, 200],
-              [223,101,176, 200],
-              [231,41,138, 200],
-              [206,18,86, 200],
-              [152,0,67, 200],
-              [103,0,31, 200]]
-              const bin = Math.round(Math.min(normalizedValue * 8, 8));
-              const color = new Uint8ClampedArray(colArr[bin]);
-              console.log(bin);
-              return color;
+            const normalizedValue = normalizer(d.value);
+            const opacity = 120;
+            const colArr = [
+              [247, 244, 249, opacity],
+              [231, 225, 239, opacity],
+              [212, 185, 218, opacity],
+              [201, 148, 199, opacity],
+              [223, 101, 176, opacity],
+              [231, 41, 138, opacity],
+              [206, 18, 86, opacity],
+              [152, 0, 67, opacity],
+              [103, 0, 31, opacity]
+            ];
+            const bin = Math.round(Math.min(normalizedValue * 8, 8));
+            return new Uint8ClampedArray(colArr[bin]);
           },
-          getElevation: (d: DataType) => d.raster_1,
-          elevationScale: 1000/props.tile.zoom*2,
-          pickable: true,
-
+          getElevation: (d: DataType) => d.value,
+          elevationScale: 1000 / (props.tile.zoom * heightLevel),
+          pickable: true
         })
       ];
     }
   });
 
-
-function Root() {
-  const [selected, setSelected] = useState<SelectedFeature | null>(null);
-
   const layers: any[] = [tileLayerQkey];
 
+  const handleRasterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedRaster(parseInt(event.target.value, 10));
+  };
+
+  const handleMaxValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setMaxValue(parseFloat(event.target.value));
+  };
+  
+  const handleHeightLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setHeightLevel(parseFloat(event.target.value));
+  };
+
+  const handleDetailLevelChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setDetailLevel(parseInt(event.target.value, 10));
+  };
+
   return (
-    <Map
-      initialViewState={INITIAL_VIEW_STATE}
-      mapStyle={MAP_STYLE}
-      mapboxAccessToken={MAPBOX_TOKEN}
-    >
-      {selected && (
-        <Popup
-          key={selected.properties.name}
-          anchor="bottom"
-          style={{ zIndex: 10 }} /* position above deck.gl canvas */
-          longitude={selected.geometry.coordinates[0]}
-          latitude={selected.geometry.coordinates[1]}
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      <header
+        style={{ padding: "10px", backgroundColor: "#f0f0f0", zIndex: 10 }}
+      >
+        <label htmlFor="raster-select" style={{ marginRight: "10px" }}>Select Raster: </label>
+        <select
+          id="raster-select"
+          value={selectedRaster}
+          onChange={handleRasterChange}
+          style={{ padding: "5px", fontSize: "16px", marginRight: "20px" }}
         >
-          {selected.properties.name} ({selected.properties.abbrev})
-        </Popup>
-      )}
-      <DeckGLOverlay layers={layers} /* interleaved*/ />
-      <NavigationControl position="top-left" />
-    </Map>
+          {RasterMapping.rasterDisplayNames.map((name, index) => (
+            <option key={index + 1} value={index + 1}>
+              {name}
+            </option>
+          ))}
+        </select>
+
+        <label htmlFor="max-value" style={{ marginRight: "10px" }}>Color Value: </label>
+        <input
+          id="max-value"
+          type="number"
+          value={maxValue}
+          onChange={handleMaxValueChange}
+          style={{ padding: "5px", fontSize: "16px", marginRight: "20px" }}
+        />
+        
+
+        <label htmlFor="detail-level" style={{ marginRight: "10px" }}>Detail Level: </label>
+        <select
+          id="detail-level"
+          value={detailLevel}
+          onChange={handleDetailLevelChange}
+          style={{ padding: "5px", fontSize: "16px", marginRight: "20px" }}
+        >
+          {Array.from({ length: 7 }, (_, i) => i + 1).map((level) => (
+            <option key={level} value={level}>
+              {`Level ${level}`}
+            </option>
+          ))}
+        </select>
+
+        <label htmlFor="height-level" style={{ marginRight: "10px" }}>Height Level: </label>
+        <input
+          id="height-level"
+          type="number"
+          value={heightLevel}
+          onChange={handleHeightLevelChange}
+          style={{ padding: "5px", fontSize: "16px", marginRight: "20px" }}
+        />
+
+        <button
+          onClick={refreshMap}
+          style={{ padding: "5px 10px", fontSize: "16px", cursor: "pointer" }}
+        >
+          Refresh Map
+        </button>
+      </header>
+
+      <Map
+        initialViewState={INITIAL_VIEW_STATE}
+        mapStyle={MAP_STYLE}
+        mapboxAccessToken={MAPBOX_TOKEN}
+      >
+        {selected && (
+          <Popup
+            longitude={0} // Update with actual coordinates from selection
+            latitude={0} // Update with actual coordinates from selection
+            anchor="bottom"
+          >
+            Selected Data: {JSON.stringify(selected)}
+          </Popup>
+        )}
+        <DeckGLOverlay layers={layers} />
+        <NavigationControl position="top-left" />
+      </Map>
+    </div>
   );
 }
 
