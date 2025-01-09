@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Map, NavigationControl, Popup, useControl } from 'react-map-gl';
 import { MapboxOverlay as DeckOverlay, MapboxOverlayProps as DeckOverlayProps } from '@deck.gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { TileLayer, QuadkeyLayer } from '@deck.gl/geo-layers';
 import { RasterMapping } from './MaleRasterMappings';
-
 /* global window */
 const MAPBOX_TOKEN: string | undefined = "pk.eyJ1Ijoia3V0cSIsImEiOiJjbTQ3ODk3NzQwMzBuMm9zOXh2Z3kzZ2o1In0.UKsaCjiqJmRJkhxDZpC-CQ"; // eslint-disable-line
 
@@ -39,7 +38,10 @@ function Root() {
   const [selectedRaster, setSelectedRaster] = useState<number>(1); // Default raster is 1
   const [maxValue, setMaxValue] = useState<number>(50); // Default max value for normalization
   const [detailLevel, setDetailLevel] = useState<number>(5); // Default detail level is 1
-  const [heightLevel, setHeightLevel] = useState<number>(1); // Default detail level is 2
+  const [heightLevel, setHeightLevel] = useState<number>(1); // Default height level is 2
+  const [opacityGui, setOpacity] = useState<number>(120); // Default opacity is 120
+
+  
 
   const normalizer = (value: number) => {
     const min = 0;
@@ -68,12 +70,12 @@ function Root() {
           getQuadkey: (d: DataType) => d.quadkey,
           getFillColor: (d) => {
             const normalizedValue = normalizer(d.value);
-            const opacity = 120;
+            const opacity = opacityGui;
             const colArr = [
-              [247, 244, 249, opacity],
-              [231, 225, 239, opacity],
-              [212, 185, 218, opacity],
-              [201, 148, 199, opacity],
+              [255, 255, 229, opacity],
+              [254, 227, 145, opacity],
+              [251, 154, 41, opacity],
+              [204, 76, 2, opacity],
               [223, 101, 176, opacity],
               [231, 41, 138, opacity],
               [206, 18, 86, opacity],
@@ -86,6 +88,7 @@ function Root() {
           getElevation: (d: DataType) => d.value,
           elevationScale: 1000 / (props.tile.zoom * heightLevel),
           pickable: true,
+        
         })
       ];
     }
@@ -100,6 +103,10 @@ function Root() {
   const handleMaxValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setMaxValue(parseFloat(event.target.value));
   };
+
+  const handleOpacityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setOpacity(parseFloat(event.target.value));
+  };
   
   const handleHeightLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setHeightLevel(parseFloat(event.target.value));
@@ -108,6 +115,8 @@ function Root() {
   const handleDetailLevelChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setDetailLevel(parseInt(event.target.value, 10));
   };
+
+
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
@@ -136,8 +145,16 @@ function Root() {
           onChange={handleMaxValueChange}
           style={{ padding: "5px", fontSize: "16px", marginRight: "20px" }}
         />
-        
 
+      <label htmlFor="max-value" style={{ marginRight: "10px" }}>Opacity Value: </label>
+        <input
+          id="opacity-value"
+          type="number"
+          value={opacityGui}
+          onChange={handleOpacityChange}
+          style={{ padding: "5px", fontSize: "16px", marginRight: "20px" }}
+        />
+      
         <label htmlFor="detail-level" style={{ marginRight: "10px" }}>Detail Level: </label>
         <select
           id="detail-level"
@@ -160,23 +177,17 @@ function Root() {
           onChange={handleHeightLevelChange}
           style={{ padding: "5px", fontSize: "16px", marginRight: "20px" }}
         />
+
       </header>
+
+      
 
       <Map
         initialViewState={INITIAL_VIEW_STATE}
         mapStyle={MAP_STYLE}
         mapboxAccessToken={MAPBOX_TOKEN}
       >
-        {selected && (
-          <Popup
-            longitude={0} // Update with actual coordinates from selection
-            latitude={0} // Update with actual coordinates from selection
-            anchor="bottom"
-          >
-            Selected Data: {JSON.stringify(selected)}
-          </Popup>
-        )}
-        <DeckGLOverlay layers={layers} />
+        <DeckGLOverlay layers={layers}/>
         <NavigationControl position="top-left" />
       </Map>
     </div>
