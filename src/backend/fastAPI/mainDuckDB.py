@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from pyquadkey2 import quadkey
-import sqlite3
+import duckdb
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 import time
@@ -12,7 +12,10 @@ async def lifespan(app: FastAPI):
     Initialise the Client and add it to request.state
     """
     # Connect to SQLite database
-    con = sqlite3.connect("src/data/quadkeyDB.sqlite")
+    con = duckdb.connect("src/data/qudkeyDB.duckdb", read_only=True)
+    con.install_extension("spatial")
+    con.load_extension("spatial")
+    # con = sqlite3.connect("src/data/quadkeyDB.sqlite")
     yield {"con": con}
 
     """ Run on shutdown

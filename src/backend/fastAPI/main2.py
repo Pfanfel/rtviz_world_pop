@@ -7,13 +7,14 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import json
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Run at startup
     Initialise the Client and add it to request.state
     """
     # Build the tree
-    con = duckdb.connect("src/data/qudkeydb.duckdb", read_only=True)
+    con = duckdb.connect("src/data/qudkeyDB.duckdb", read_only=True)
     con.install_extension("spatial")
     con.load_extension("spatial")
     yield {"con": con}
@@ -23,6 +24,7 @@ async def lifespan(app: FastAPI):
         Clear variables and release the resources
     """
     # Cleanup logic here if necessary
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -36,6 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def deg2num(lat_deg, lon_deg, zoom):
     lat_rad = math.radians(lat_deg)
     n = 1 << zoom
@@ -43,12 +46,14 @@ def deg2num(lat_deg, lon_deg, zoom):
     ytile = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
     return xtile, ytile
 
+
 def num2deg(xtile, ytile, zoom):
     n = 1 << zoom
     lon_deg = xtile / n * 360.0 - 180.0
     lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
     lat_deg = math.degrees(lat_rad)
     return lat_deg, lon_deg
+
 
 async def getData(quadkeys, con):
     if not quadkeys:
@@ -68,15 +73,20 @@ async def getData(quadkeys, con):
     resultsDic = result.to_dict(orient="records")
     return resultsDic
 
+
 async def loadTileMale(z, y, x, con):
     qkey = quadkey.from_tile((x, y), z)  # get quadtree for this tile
-    listofQKeys = qkey.children(z + 5)  # get all children 3 levels deeper -> 64 data points for this tile
+    listofQKeys = qkey.children(
+        z + 5
+    )  # get all children 3 levels deeper -> 64 data points for this tile
     return await getData(listofQKeys, con)
+
 
 @app.get("/api/male/{z}/{y}/{x}")
 async def get_male_tile(z: int, y: int, x: int, request: Request):
     result = await loadTileMale(z, y, x, request.state.con)
     return result
+
 
 @app.get("/api/male/descendant/{quadkey}")
 async def get_descendants(quadkey: int, request: Request):
@@ -84,10 +94,12 @@ async def get_descendants(quadkey: int, request: Request):
     filtered_data = filter_by_descendent(data_slice_male_quadkey, str(quadkey))
     return json.loads(filtered_data)
 
+
 @app.get("/api/schema")
 async def get_schema(request: Request):
     schema = request.state.con.sql("""PRAGMA show_tables;""").df()
     return schema
+
 
 @app.get("/api/create_table")
 async def create_table(request: Request):

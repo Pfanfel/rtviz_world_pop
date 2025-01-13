@@ -73,14 +73,14 @@ function Root() {
             const opacity = opacityGui;
             const colArr = [
               [255, 255, 229, opacity],
+              [255, 247, 188, opacity],
               [254, 227, 145, opacity],
+              [254, 196, 79, opacity],
               [251, 154, 41, opacity],
+              [236, 112, 20, opacity],
               [204, 76, 2, opacity],
-              [223, 101, 176, opacity],
-              [231, 41, 138, opacity],
-              [206, 18, 86, opacity],
-              [152, 0, 67, opacity],
-              [103, 0, 31, opacity]
+              [153, 52, 4, opacity],
+              [102, 37, 6, opacity]
             ];
             const bin = Math.round(Math.min(normalizedValue * 8, 8));
             return new Uint8ClampedArray(colArr[bin]);
