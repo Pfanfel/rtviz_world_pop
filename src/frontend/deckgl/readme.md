@@ -1,6 +1,6 @@
 ## Usage
 
-To run this example, you need a [Mapbox access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/). You can either set an environment variable:
+To run this, you need a [Mapbox access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/). You can either set an environment variable:
 
 ```bash
 export MapboxAccessToken=<mapbox_access_token>
