@@ -6,8 +6,8 @@ numpy
 pandas
 pyquadkey2
 uvicorn
-duckdb
 
+#duckdb
 #%pip install duckdb leafmap
 #%pip install "xarray[io]"
 #%pip install jupysql
