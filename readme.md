@@ -4,6 +4,8 @@
 
 This project creates an interactive 2.5D visualization of global population densities using deck.gl. Population density is represented through both height and color saturation, making demographic patterns easily recognizable. The web application allows users to explore population data from global to regional scales.
 
+TODO: Image or short video of project in action
+
 ## Prerequisites
 
 - Python 3.x
