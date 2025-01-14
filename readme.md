@@ -4,7 +4,7 @@
 
 This project creates an interactive 2.5D visualization of global population densities using deck.gl. Population density is represented through both height and color saturation, making demographic patterns easily recognizable. The web application allows users to explore population data from global to regional scales.
 
-TODO: Image or short video of project in action
+![frontend_screenshot](assets/pop_viz_demo.png)
 
 ## Prerequisites
 
@@ -20,7 +20,44 @@ TODO: Image or short video of project in action
 
 ## Setup Instructions
 
+### Data Loading (once)
+
+1. Data preparation:
+
+- Unzip the downloaded dataset
+- Move `gpw_v4_basic_demographic_characteristics_rev11_mt_2010_dens_2pt5_min.nc` to the `/data` folder
+- Run the data loading notebook:
+
+2. Navigate into /src/backend/notebooks
+
+```bash
+cd /src/backend/notebooks
+```
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+4. Run Notekook to create the database quadkeyDB.sqlite in /data
+
+```bash
+jupyter notebook loadDataSQLite.ipynb
+```
+
 ### Backend Setup
+
+0. Navigate into src/backend/fastAPI
+
+```bash
+cd src/backend/fastAPI
+```
 
 1. Create and activate Python virtual environment:
 
@@ -32,17 +69,7 @@ source venv/bin/activate
 2. Install dependencies:
 
 ```bash
-pip install -r src/backend/fastAPI/requirements.txt
-```
-
-3. Data preparation:
-
-- Unzip the downloaded dataset
-- Move `gpw_v4_basic_demographic_characteristics_rev11_mt_2010_dens_2pt5_min.nc` to the `/data` folder
-- Run the data loading notebook:
-
-```bash
-jupyter notebook src/backend/loadDataSQLite.ipynb
+pip install -r requirements.txt
 ```
 
 4. Start the backend server:
@@ -53,7 +80,7 @@ fastapi dev src/backend/fastAPI/mainSqlite.py
 
 ### Frontend Setup
 
-1. Navigate to the frontend folder and install dependencies:
+1. Navigate to the frontend folder (/src/frontend/deckgl) and install dependencies:
 
 ```bash
 npm install

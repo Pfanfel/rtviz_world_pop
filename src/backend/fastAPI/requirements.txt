@@ -1,11 +1,5 @@
-# Installed fastapi with pip install "fastapi[standard]"
-fastapi
-xarray
-netCDF4
-numpy
-pandas
+fastapi[standard]
 pyquadkey2
-uvicorn
 
 #duckdb
 #%pip install duckdb leafmap

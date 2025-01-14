@@ -12,7 +12,7 @@ async def lifespan(app: FastAPI):
     Initialise the Client and add it to request.state
     """
     # Connect to SQLite database
-    con = sqlite3.connect("src/data/quadkeyDB.sqlite")
+    con = sqlite3.connect("../../data/quadkeyDB.sqlite")
     yield {"con": con}
 
     """ Run on shutdown
