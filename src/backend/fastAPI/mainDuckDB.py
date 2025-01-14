@@ -68,7 +68,7 @@ async def getData(quadkeys, con, z, y, x, raster_index):
     cur.execute(query)
     result = cur.fetchall()
     operation2_end = time.time()
-    print(f"DB Query {z, y, x} took {operation2_end - operation2_start} seconds")
+    # print(f"DB Query {z, y, x} took {operation2_end - operation2_start} seconds")
     # Map result to dictionary
     columns = [desc[0] for desc in cur.description]
     result_dicts = [dict(zip(columns, row)) for row in result]
@@ -87,23 +87,23 @@ async def loadTileMale(z, y, x, con, raster_index, detailLevel):
 async def get_male_tile(
     z: int, y: int, x: int, raster_index: int, detailLevel: int, request: Request
 ):
-    print(
-        "Requesting tile",
-        z,
-        y,
-        x,
-        "with raster",
-        raster_index,
-        "and detail level",
-        detailLevel,
-    )
+    # print(
+    #    "Requesting tile",
+    #    z,
+    #    y,
+    #    x,
+    #    "with raster",
+    #    raster_index,
+    #    "and detail level",
+    #    detailLevel,
+    # )
     # Call the function and return the result
     operation1_start = time.time()
     result = await loadTileMale(z, y, x, request.state.con, raster_index, detailLevel)
     operation1_end = time.time()
-    print(
-        f"Total time taken for {z, y, x} tile {operation1_end - operation1_start} seconds"
-    )
+    # print(
+    #    f"Total time taken for {z, y, x} tile {operation1_end - operation1_start} seconds"
+    # )
     return result
 
 

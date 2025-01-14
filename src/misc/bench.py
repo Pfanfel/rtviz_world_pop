@@ -22,7 +22,7 @@ def generate_random_tile():
 
 async def fetch_tile(client, z, y, x):
     url = API_URL.format(
-        z=z, y=y, x=x, raster_index=1, detailLevel=7, heightLevel=3, maxValue=1
+        z=z, y=y, x=x, raster_index=1, detailLevel=5, heightLevel=3, maxValue=1
     )
     start_time = time.time()
     try:
