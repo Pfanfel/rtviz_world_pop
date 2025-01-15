@@ -3,3 +3,5 @@ pandas
 xarray
 pyquadkey2
 xarray[io]
+joblib
+

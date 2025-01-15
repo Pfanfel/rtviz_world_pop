@@ -1,4 +1,4 @@
-# Population Density Visualization with deck.gl
+# Interactive Population Density Visualization
 
 ## Overview
 
