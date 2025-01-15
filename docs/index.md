@@ -6,6 +6,10 @@ This project creates an interactive 2.5D visualization of global population dens
 
 ![frontend_screenshot](assets/pop_viz_demo.png)
 
+## Architecture
+
+![architecture](assets/architecture.png)
+
 ## Prerequisites
 
 - Python 3.x
