@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project creates an interactive 2.5D visualization of global population densities using deck.gl. Population density is represented through both height and color saturation, making demographic patterns easily recognizable. The web application allows users to explore population data from global to regional scales.
+[This project](https://github.com/Pfanfel/rtviz_world_pop) creates an interactive 2.5D visualization of global population densities using deck.gl. Population density is represented through both height and color saturation, making demographic patterns easily recognizable. The web application allows users to explore population data from global to regional scales.
 
 ![frontend_screenshot](assets/pop_viz_demo.png)
 
