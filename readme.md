@@ -10,6 +10,10 @@ This project creates an interactive 2.5D visualization of global population dens
 
 ![architecture](assets/architecture.png)
 
+## Interaction Demo
+
+## ![gif_overview](assets/overview_pop_viz.gif)
+
 ## Prerequisites
 
 - Python 3.x
@@ -50,6 +54,8 @@ pip install -r requirements.txt
 ```
 
 4. Run Notekook to create the database quadkeyDB.sqlite in /data
+
+   Note: Depending on the detail level it might take a very long time (level 14 about 1.5h on a good CPU)
 
 ```bash
 jupyter notebook loadDataSQLite.ipynb
