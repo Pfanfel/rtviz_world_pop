@@ -26,6 +26,14 @@
   - Format: NetCDF
   - Resolution: 2.5 Minute
 
+## Limitations
+
+- No Picking of individual Bars or Countries with descriptive Statistics
+- No dynamic scaling of bar height and color binning
+- No compression of application data during transit (JSON → Protobuf)
+- If mapping is changed in the frontend, data needs to be fetched again, not loaded from local cache
+- Render order issues
+
 ## Setup Instructions
 
 ### Data Loading (once)
