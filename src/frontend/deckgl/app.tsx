@@ -6,7 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { TileLayer, QuadkeyLayer } from '@deck.gl/geo-layers';
 import { RasterMapping } from './MaleRasterMappings';
 /* global window */
-const MAPBOX_TOKEN: string | undefined = "pk.eyJ1Ijoia3V0cSIsImEiOiJjbTQ3ODk3NzQwMzBuMm9zOXh2Z3kzZ2o1In0.UKsaCjiqJmRJkhxDZpC-CQ"; // eslint-disable-line
+const MAPBOX_TOKEN: string | undefined = ''; // eslint-disable-line
 
 const INITIAL_VIEW_STATE = {
   latitude: 51.47,

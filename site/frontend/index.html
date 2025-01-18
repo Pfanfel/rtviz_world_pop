@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Frontend - RtViz World Population</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Frontend";
+        var mkdocs_page_input_path = "frontend.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> RtViz World Population
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Interactive Population Density Visualization</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../backend/">FastAPI Backend</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Frontend</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#technology-stack">Technology Stack</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#mapbox">Mapbox</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#deckgl">Deck.gl</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">RtViz World Population</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Frontend</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="frontend">Frontend</h1>
+<h2 id="overview">Overview</h2>
+<p>This React TypeScript application visualizes geospatial data using a Mapbox and Deck.gl integration. The application allows users to:</p>
+<ul>
+<li>Visualize raster data on a map.</li>
+<li>Adjust visualization parameters dynamically, including raster selection, color value normalization, detail level, height scaling, and opacity.</li>
+</ul>
+<h3 id="technology-stack">Technology Stack</h3>
+<ul>
+<li><strong>Frontend Framework:</strong> React with TypeScript</li>
+<li><strong>Map Visualization:</strong> Mapbox GL and Deck.gl</li>
+<li><strong>Geospatial Layers:</strong> Deck.gl Geo-layers (<code>TileLayer</code> and <code>QuadkeyLayer</code>)</li>
+</ul>
+<h3 id="mapbox">Mapbox</h3>
+<p>Mapbox is used as the base map provider to render map tiles and manage the overall map interface. Its key roles include: Base Map rendering and navigation control.</p>
+<h3 id="deckgl">Deck.gl</h3>
+<p>is used to add custom and advanced layers on top of the Mapbox base map. The TileLayer is configured to fetch raster data dynamically from a backend API. The layer manages loading and rendering of tiles efficiently. The QuadkeyLayer visualizes geospatial data by mapping quadkeys to colors and elevations. 
+Deck.gl allows layers to be updated dynamically by passing new props.</p>
+<p>Deck.gl is used like in this example:</p>
+<pre><code>const tileLayerQkey = new TileLayer&lt;DataType&gt;({
+  data: [
+    `http://127.0.0.1:8000/api/male/{z}/{y}/{x}/${selectedRaster}/${detailLevel}/${heightLevel}/${maxValue}`,
+  ],
+  renderSubLayers: (props) =&gt; [
+    new QuadkeyLayer&lt;DataType&gt;({
+      data: props.data,
+      getQuadkey: (d) =&gt; d.quadkey,
+      getFillColor: (d) =&gt; { /* Map data values to colors */ },
+      getElevation: (d) =&gt; d.value,
+    }),
+  ],
+});
+</code></pre>
+<p><strong>Color is set by binning the normalized data:</strong></p>
+<pre><code> getFillColor: (d) =&gt; {
+            const normalizedValue = normalizer(d.value);
+            const opacity = opacityGui;
+            const colArr = [
+              [255, 255, 229, opacity],
+              [255, 247, 188, opacity],
+              [254, 227, 145, opacity],
+              [254, 196, 79, opacity],
+              [251, 154, 41, opacity],
+              [236, 112, 20, opacity],
+              [204, 76, 2, opacity],
+              [153, 52, 4, opacity],
+              [102, 37, 6, opacity]
+            ];
+            const bin = Math.round(Math.min(normalizedValue * 8, 8));
+            return new Uint8ClampedArray(colArr[bin]);
+          },
+</code></pre>
+<p><strong>Using the Normalizer</strong></p>
+<p>The <code>maxValue</code> can be set by the user</p>
+<pre><code> const normalizer = (value: number) =&gt; {
+    const min = 0;
+    return (value - min) / (maxValue - min);
+  };
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../backend/" class="btn btn-neutral float-left" title="FastAPI Backend"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../backend/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

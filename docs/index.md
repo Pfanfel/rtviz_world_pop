@@ -1,14 +1,17 @@
 # Interactive Population Density Visualization
-
 ## Overview
 
-This project creates an interactive 2.5D visualization of global population densities using deck.gl. Population density is represented through both height and color saturation, making demographic patterns easily recognizable. The web application allows users to explore population data from global to regional scales.
+[This project](https://github.com/Pfanfel/rtviz_world_pop) creates an interactive 2.5D visualization of global population densities using deck.gl. Population density is represented through both height and color saturation, making demographic patterns easily recognizable. The web application allows users to explore population data from global to regional scales.
 
 ![frontend_screenshot](assets/pop_viz_demo.png)
 
 ## Architecture
 
 ![architecture](assets/architecture.png)
+
+## Interaction Demo
+
+## ![gif_overview](assets/overview_pop_viz.gif)
 
 ## Prerequisites
 
@@ -21,6 +24,14 @@ This project creates an interactive 2.5D visualization of global population dens
   - Temporal: Combined Five Year Age Groups
   - Format: NetCDF
   - Resolution: 2.5 Minute
+
+## Limitations
+
+- No Picking of individual Bars or Countries with descriptive Statistics
+- No dynamic scaling of bar height and color binning
+- No compression of application data during transit (JSON → Protobuf)
+- If mapping is changed in the frontend, data needs to be fetched again, not loaded from local cache
+- Render order issues
 
 ## Setup Instructions
 
@@ -50,6 +61,8 @@ pip install -r requirements.txt
 ```
 
 4. Run Notekook to create the database quadkeyDB.sqlite in /data
+
+   Note: Depending on the detail level it might take a very long time (level 14 about 1.5h on a good CPU)
 
 ```bash
 jupyter notebook loadDataSQLite.ipynb
